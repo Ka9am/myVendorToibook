@@ -1,65 +1,97 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import { Offer, Category } from '@/lib/types';
+import { getOffers } from '@/lib/storage';
+import { getUser } from '@/lib/auth';
+import OfferCard from '@/components/OfferCard';
+import FilterBar, { Filters } from '@/components/FilterBar';
+import CategoryPills from '@/components/CategoryPills';
+
+export default function HomePage() {
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [category, setCategory] = useState<Category | ''>('');
+  const [filters, setFilters] = useState<Filters>({ category: '', city: '', maxPrice: '', minCapacity: '' });
+  const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
+
+  useEffect(() => {
+    setOffers(getOffers());
+    setUser(getUser());
+  }, []);
+
+  const filtered = useMemo(() => {
+    const activeCat = category || filters.category;
+    return offers.filter((o) => {
+      if (activeCat && o.category !== activeCat) return false;
+      if (filters.city && o.city !== filters.city) return false;
+      if (filters.maxPrice && o.price > Number(filters.maxPrice)) return false;
+      if (filters.minCapacity && (o.capacity ?? 0) < Number(filters.minCapacity)) return false;
+      return true;
+    });
+  }, [offers, filters, category]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="space-y-8">
+      {/* Hero */}
+      <div
+        className="rounded-3xl px-8 py-14 text-center relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #FDF3E3 0%, #FDF8F0 60%, #FAF0DC 100%)' }}
+      >
+        <p className="text-sm font-medium mb-3 tracking-widest uppercase" style={{ color: 'var(--gold)' }}>
+          Маркетплейс вендоров · Казахстан
+        </p>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight" style={{ color: 'var(--text-main)' }}>
+          Найдите лучших вендоров<br />для вашего торжества
+        </h1>
+        <p className="text-base mb-8 max-w-xl mx-auto" style={{ color: 'var(--text-sub)' }}>
+          Площадки, тамады, фотографы, декор, музыка и кейтеринг — всё в одном месте по всему Казахстану
+        </p>
+        {!user && (
+          <div className="flex gap-3 justify-center flex-wrap">
+            <Link
+              href="/register"
+              className="px-6 py-3 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90"
+              style={{ background: 'var(--gold)' }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Найти вендора
+            </Link>
+            <Link
+              href="/register?role=vendor"
+              className="px-6 py-3 rounded-xl font-semibold text-sm border-2 transition-colors hover:bg-white"
+              style={{ borderColor: 'var(--gold)', color: 'var(--gold-dark)' }}
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              Стать вендором
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Category pills */}
+      <CategoryPills selected={category} onSelect={setCategory} />
+
+      {/* Filters */}
+      <FilterBar filters={filters} onChange={setFilters} />
+
+      {/* Count */}
+      <p className="text-sm" style={{ color: 'var(--text-sub)' }}>
+        Найдено: <span className="font-semibold" style={{ color: 'var(--text-main)' }}>{filtered.length}</span> предложений
+      </p>
+
+      {/* Grid */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-20" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-4xl mb-3">🔍</p>
+          <p className="font-medium text-lg">Ничего не найдено</p>
+          <p className="text-sm mt-1">Попробуйте изменить фильтры</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((offer) => (
+            <OfferCard key={offer.id} offer={offer} />
+          ))}
         </div>
-      </main>
+      )}
     </div>
   );
 }
