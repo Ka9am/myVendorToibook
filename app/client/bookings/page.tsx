@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Booking, BookingStatus } from '@/lib/types';
-import { getBookings } from '@/lib/storage';
+import { getClientBookings } from '@/lib/storage';
 import { getUser } from '@/lib/auth';
 import BookingStatusBadge from '@/components/BookingStatusBadge';
 import AuthGuard from '@/components/AuthGuard';
@@ -22,8 +22,7 @@ function BookingsContent() {
   useEffect(() => {
     const user = getUser();
     if (!user) return;
-    const all = getBookings().filter(b => b.clientName === user.name);
-    setBookings(all);
+    setBookings(getClientBookings(user.id));
   }, []);
 
   const filtered = tab === 'all' ? bookings : bookings.filter(b => b.status === tab);

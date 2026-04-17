@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [role, setRole] = useState<UserRole>('client');
   const [form, setForm] = useState({ name: '', email: '', password: '', companyName: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [topError, setTopError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const set = (k: keyof typeof form, v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -25,11 +26,17 @@ export default function RegisterPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setTopError('');
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setLoading(true);
-    const user = register({ ...form, role });
-    router.push(user.role === 'vendor' ? '/vendor/dashboard' : '/');
+    const result = register({ ...form, role });
+    if (!result.ok) {
+      setTopError(result.error);
+      setLoading(false);
+      return;
+    }
+    router.push(result.user.role === 'vendor' ? '/vendor/dashboard' : '/');
   };
 
   return (
@@ -112,6 +119,10 @@ export default function RegisterPage() {
                 className="input-field"
               />
             </Field>
+
+            {topError && (
+              <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{topError}</p>
+            )}
 
             <button
               type="submit"

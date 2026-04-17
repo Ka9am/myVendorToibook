@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { login, getUser } from '@/lib/auth';
+import { login } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,13 +17,13 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const user = login(form.email, form.password);
-    if (!user) {
-      setError('Неверный email или пароль');
+    const result = login(form.email, form.password);
+    if (!result.ok) {
+      setError(result.error);
       setLoading(false);
       return;
     }
-    router.push(user.role === 'vendor' ? '/vendor/dashboard' : '/');
+    router.push(result.user.role === 'vendor' ? '/vendor/dashboard' : '/');
   };
 
   return (

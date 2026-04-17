@@ -4,15 +4,25 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { getUser, logout, AuthUser } from '@/lib/auth';
+import { getVendorBookings, getFavorites } from '@/lib/storage';
 
 export default function Navbar() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [favCount, setFavCount] = useState(0);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    setUser(getUser());
+    const u = getUser();
+    setUser(u);
+    if (u?.role === 'vendor') {
+      setPendingCount(getVendorBookings(u.id).filter((b) => b.status === 'pending').length);
+    }
+    if (u?.role === 'client') {
+      setFavCount(getFavorites(u.id).length);
+    }
   }, [pathname]);
 
   const handleLogout = () => {
@@ -25,30 +35,50 @@ export default function Navbar() {
   return (
     <nav className="bg-white border-b sticky top-0 z-50" style={{ borderColor: 'var(--border)' }}>
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <span className="text-2xl font-bold" style={{ fontFamily: 'var(--font-playfair, Georgia, serif)', color: 'var(--gold-dark)' }}>
             ToiBook
           </span>
         </Link>
 
-        {/* Center links */}
         <div className="hidden md:flex items-center gap-6 text-sm font-medium" style={{ color: 'var(--text-sub)' }}>
           <Link href="/" className="hover:text-[--gold-dark] transition-colors">Каталог</Link>
 
           {user?.role === 'vendor' && (
             <>
               <Link href="/vendor/dashboard" className="hover:text-[--gold-dark] transition-colors">Мои офферы</Link>
-              <Link href="/vendor/leads" className="hover:text-[--gold-dark] transition-colors">Заявки</Link>
+              <Link href="/vendor/leads" className="hover:text-[--gold-dark] transition-colors relative">
+                Заявки
+                {pendingCount > 0 && (
+                  <span
+                    className="absolute -top-2 -right-5 text-[10px] font-bold text-white rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center"
+                    style={{ background: '#E53935' }}
+                  >
+                    {pendingCount}
+                  </span>
+                )}
+              </Link>
             </>
           )}
 
           {user?.role === 'client' && (
-            <Link href="/client/bookings" className="hover:text-[--gold-dark] transition-colors">Мои заявки</Link>
+            <>
+              <Link href="/favorites" className="hover:text-[--gold-dark] transition-colors relative">
+                Избранное
+                {favCount > 0 && (
+                  <span
+                    className="ml-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                    style={{ background: 'var(--gold-light)', color: 'var(--gold-dark)' }}
+                  >
+                    {favCount}
+                  </span>
+                )}
+              </Link>
+              <Link href="/client/bookings" className="hover:text-[--gold-dark] transition-colors">Мои заявки</Link>
+            </>
           )}
         </div>
 
-        {/* Right side */}
         <div className="flex items-center gap-3">
           {!user ? (
             <>
@@ -79,7 +109,6 @@ export default function Navbar() {
                 </Link>
               )}
 
-              {/* User menu */}
               <div className="relative">
                 <button
                   onClick={() => setMenuOpen(!menuOpen)}
@@ -115,6 +144,16 @@ export default function Navbar() {
                         style={{ color: 'var(--text-main)' }}
                       >
                         Дашборд
+                      </Link>
+                    )}
+                    {user.role === 'client' && (
+                      <Link
+                        href="/favorites"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+                        style={{ color: 'var(--text-main)' }}
+                      >
+                        Избранное
                       </Link>
                     )}
                     <hr style={{ borderColor: 'var(--border)' }} className="my-1" />
