@@ -22,7 +22,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const auth = authFromRequest(req);
-  if (!auth) {
+  if (!auth || typeof auth.vendorId !== 'number') {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 

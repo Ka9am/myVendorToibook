@@ -1,13 +1,23 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { ApiVendor, ApiOffer } from './types';
+import { ApiVendor, ApiOffer, ApiTicket, ApiConversation, ApiChatMessage } from './types';
 
 const DATA_DIR = path.join(process.cwd(), '.data');
 const VENDORS_FILE = path.join(DATA_DIR, 'vendors.json');
 const OFFERS_FILE = path.join(DATA_DIR, 'offers.json');
 const COUNTERS_FILE = path.join(DATA_DIR, 'counters.json');
+const TICKETS_FILE = path.join(DATA_DIR, 'tickets.json');
+const CONVERSATIONS_FILE = path.join(DATA_DIR, 'conversations.json');
+const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
 
-type Counters = { vendor: number; offer: number; detail: number };
+type Counters = {
+  vendor: number;
+  offer: number;
+  detail: number;
+  ticket: number;
+  conversation: number;
+  message: number;
+};
 
 async function ensureDir(): Promise<void> {
   await fs.mkdir(DATA_DIR, { recursive: true });
@@ -43,8 +53,36 @@ export async function saveOffers(offers: ApiOffer[]): Promise<void> {
   await writeJson(OFFERS_FILE, offers);
 }
 
+export async function getTickets(): Promise<ApiTicket[]> {
+  return readJson<ApiTicket[]>(TICKETS_FILE, []);
+}
+
+export async function saveTickets(tickets: ApiTicket[]): Promise<void> {
+  await writeJson(TICKETS_FILE, tickets);
+}
+
+export async function getConversations(): Promise<ApiConversation[]> {
+  return readJson<ApiConversation[]>(CONVERSATIONS_FILE, []);
+}
+
+export async function saveConversations(items: ApiConversation[]): Promise<void> {
+  await writeJson(CONVERSATIONS_FILE, items);
+}
+
+export async function getMessages(): Promise<ApiChatMessage[]> {
+  return readJson<ApiChatMessage[]>(MESSAGES_FILE, []);
+}
+
+export async function saveMessages(items: ApiChatMessage[]): Promise<void> {
+  await writeJson(MESSAGES_FILE, items);
+}
+
 export async function getCounters(): Promise<Counters> {
-  return readJson<Counters>(COUNTERS_FILE, { vendor: 0, offer: 0, detail: 0 });
+  const defaults: Counters = {
+    vendor: 0, offer: 0, detail: 0, ticket: 0, conversation: 0, message: 0,
+  };
+  const data = await readJson<Partial<Counters>>(COUNTERS_FILE, {});
+  return { ...defaults, ...data };
 }
 
 export async function nextId(key: keyof Counters): Promise<number> {

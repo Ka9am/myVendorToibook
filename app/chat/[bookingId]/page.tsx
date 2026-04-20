@@ -12,14 +12,12 @@ export default function ChatPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [role, setRole] = useState<MessageSender>('client');
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const found = getBookingById(bookingId);
     setBooking(found ?? null);
     const user = getUser();
     if (user) setRole(user.role === 'vendor' ? 'vendor' : 'client');
-    setMounted(true);
   }, [bookingId]);
 
   if (!booking) {
@@ -45,21 +43,6 @@ export default function ChatPage() {
         <span>/</span>
         <span style={{ color: 'var(--text-main)' }}>Чат</span>
       </div>
-
-      {/* Dev switcher — для тестирования */}
-      {mounted && (
-        <div className="text-xs px-3 py-1.5 rounded-full inline-block" style={{ background: '#F3F4F6', color: 'var(--text-muted)' }}>
-          Вы: {role === 'client' ? '👤 Клиент' : '🏪 Вендор'}
-          {' · '}
-          <button
-            onClick={() => setRole(r => r === 'client' ? 'vendor' : 'client')}
-            className="hover:underline"
-            style={{ color: 'var(--gold-dark)' }}
-          >
-            Переключиться на {role === 'client' ? 'вендора' : 'клиента'}
-          </button>
-        </div>
-      )}
 
       <div className="h-[600px]">
         <ChatWindow booking={booking} currentSender={role} onUpdate={setBooking} />

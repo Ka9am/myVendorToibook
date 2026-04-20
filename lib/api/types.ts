@@ -72,6 +72,54 @@ export type CreateOfferRequest = {
   }>;
 };
 
+export type TicketStatus = 'SAVED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export type ApiTicket = {
+  id: number;
+  eventId: number;
+  offerId: number;
+  vendorId: number;
+  clientId: number;
+  eventName: string;
+  eventDescription: string;
+  messageToVendor: string;
+  status: TicketStatus;
+  created_At: string;
+};
+
+export type TicketCard = {
+  id: number;
+  eventId: number;
+  offerId: number;
+  eventName: string;
+  eventDescription: string;
+  messageToVendor: string;
+  status: TicketStatus;
+  created_At: string;
+};
+
+export type ChatMessageStatus = 'SENT' | 'DELIVERED' | 'READ';
+
+export type ApiChatMessage = {
+  id: number;
+  conversationId: number;
+  senderId: number;
+  senderRole: 'VENDOR' | 'CLIENT';
+  text: string;
+  status: ChatMessageStatus;
+  createdAt: string;
+};
+
+export type ApiConversation = {
+  id: number;
+  vendorId: number;
+  clientId: number;
+  clientName: string;
+  lastMessage: string | null;
+  lastMessageAt: string | null;
+  unreadCount: number;
+};
+
 export type PageResponse<T> = {
   content: T[];
   empty: boolean;
