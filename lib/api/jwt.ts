@@ -5,7 +5,8 @@ const EXPIRES_IN = '6h';
 
 export type JwtPayload = {
   sub: string;
-  vendorId: number;
+  vendorId?: number;
+  role?: 'ADMIN';
 };
 
 export function signToken(payload: JwtPayload): string {

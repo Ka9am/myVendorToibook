@@ -44,6 +44,7 @@ export type ApiOffer = {
   images: OfferImage[];
   detailsResponses: OfferDetail[];
   createdAt: string;
+  rejectionReason?: string | null;
 };
 
 export type OfferCard = {

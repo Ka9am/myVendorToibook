@@ -25,6 +25,8 @@ export default function Navbar() {
     }
   }, [pathname]);
 
+  if (pathname?.startsWith('/admin')) return null;
+
   const handleLogout = () => {
     logout();
     setUser(null);
